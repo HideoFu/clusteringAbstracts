@@ -11,6 +11,7 @@ library(shiny)
 library(readr)
 library(stringr)
 library(dplyr)
+library(XML)
 
 library(tm)
 library(slam)
@@ -84,9 +85,21 @@ server <- function(input, output) {
   
   # Read Data
   raw_data <- reactive({
-     data <- read_csv(input$file$datapath)
-     if("clust" %in% names(data)){
-       data <- data[,-which(names(data) == "clust")]
+     ext <- str_sub(input$file$name, -3,-1)
+     
+     if (ext == "csv"){
+       data <- read_csv(input$file$datapath)
+       if("clust" %in% names(data)){
+         data <- data[,-which(names(data) == "clust")]
+       }
+     } else if(ext == "xml"){
+       xml <-xmlTreeParse(input$file$datapath, useInternalNodes = T)
+       
+       id <- xpathSApply(xml, "//PMID", xmlValue)
+       title <- xpathSApply(xml, "//ArticleTitle", xmlValue)
+       abst <- xpathSApply(xml, "//Abstract", xmlValue)
+       
+       data <- data_frame(doc_id = id, text = abst, title = title)
      }
      
      return(data)
@@ -97,22 +110,22 @@ server <- function(input, output) {
      ## clean special chars
      data <- raw_data()
      
-     data$Abstract <- gsub("\\r*\\n*", "", data$Abstract)
-     data$PubDate <- data$PubDate %>% 
-       str_replace_all("\\r\\n", "/") %>%
-       str_replace_all("^/|/$", "")
-     data$AuthorList <- gsub("\\r\\n", ", ", data$AuthorList)
-     data$KeywordList <- data$KeywordList %>%
-       str_replace_all("\\r\\n", ", ") %>%
-       str_replace("^, ", "")
+     # data$Abstract <- gsub("\\r*\\n*", "", data$Abstract)
+     # data$PubDate <- data$PubDate %>% 
+     #   str_replace_all("\\r\\n", "/") %>%
+     #   str_replace_all("^/|/$", "")
+     # data$AuthorList <- gsub("\\r\\n", ", ", data$AuthorList)
+     # data$KeywordList <- data$KeywordList %>%
+     #   str_replace_all("\\r\\n", ", ") %>%
+     #   str_replace("^, ", "")
+     # 
+     # 
+     # ## rename / sort columns
+     # data <- data %>%
+     #   mutate(doc_id = seq(1, nrow(data))) %>%
+     #   select(doc_id, Abstract)
      
-     
-     ## rename / sort columns
-     data <- data %>%
-       mutate(doc_id = seq(1, nrow(data))) %>%
-       select(doc_id, Abstract)
-     
-     colnames(data)[2] <- "text"
+     colnames(data)[1:2] <- c("doc_id","text")
      
      
      ## convert to corpus
