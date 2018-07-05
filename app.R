@@ -27,7 +27,7 @@ ui <- fluidPage(
    # Application title
    titlePanel("Clustering Abstracts"),
    
-   # Sidebar with a slider input for number of bins 
+
    sidebarLayout(
       sidebarPanel(
         fileInput("file", "Select File:"),
@@ -40,7 +40,7 @@ ui <- fluidPage(
           downloadButton("dl_sum", "Top_words")
         ),
         
-        # Labering
+        # Labeling
         wellPanel(
           textAreaInput("kw", "Keywords:", 
                         placeholder = "Separate words with ','. Regex can be used."),  # Key word
