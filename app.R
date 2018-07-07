@@ -233,6 +233,24 @@ server <- function(input, output) {
    })
    
    # Draw Dendrogram (w/ Cluster)
+   ## select doc_id which has KWs
+   docs <- reactive({
+     input$label
+     
+     isolate({
+       if(input$kw != ""){
+         kws <- paste0("^", kw_vec(), "$") %>%
+           paste(collapse = "|")
+         
+         tdm <- tdm()
+         
+         row_no <- grep(kws, tdm$dimnames$Terms)
+         docs <- tdm$dimnames$Docs[tdm$j[tdm$i %in% row_no]]
+       }
+     })
+   })
+   
+   ## Draw
    output$dendrogram <- renderPlot({
      input$draw
      input$label
@@ -246,16 +264,7 @@ server <- function(input, output) {
        
        ## Emphasize document including key word
        if(input$kw != ""){
-         kws <- paste0("^", kw_vec(), "$") %>%
-           paste(collapse = "|")
-         
-         
-         tdm <- tdm()
-         
-         row_no <- grep(kws, tdm$dimnames$Terms)
-         docs <- tdm$dimnames$Docs[tdm$j[tdm$i %in% row_no]]
-         
-         dend <- branches_attr_by_labels(dend, docs, "red")
+         dend <- branches_attr_by_labels(dend, docs(), "red")
        }
        
        plot(dend)
