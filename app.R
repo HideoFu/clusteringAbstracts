@@ -323,8 +323,14 @@ server <- function(input, output) {
      input$label
      
      isolate({
+       # dtm: Document Temr Matrix in Simple triplet matrix
+       # kw_vec():  key words vector
+       # clust(): cutree obj
+       
+       
        dtm_df <- as.matrix(dtm()) %>% as_data_frame()
        
+       # make table: keyword count per cluster
        kw_sum <- dtm_df %>%
          select(kw_vec()) %>%
          bind_cols(cluster = clust()) %>%
@@ -333,7 +339,29 @@ server <- function(input, output) {
          left_join(freq_tbl(), by = "cluster") %>%
          select(cluster, size, kw_vec())
        
-       return(kw_sum)
+       
+       # mutate counts to fractions
+       size <- kw_sum$size
+       total <- sum(size)
+       
+       in_each <- round(kw_sum[,kw_vec()] / size * 100, 1)
+       in_total <- round(kw_sum[,"size"] / total * 100, 0)
+       
+       ## into percentage
+       in_perc <- function(df){
+         as_data_frame(apply(apply(df, 2, as.character), 2, paste0, "%"))
+       }
+       
+       in_each_perc <- in_perc(in_each)
+       in_total_perc <- in_perc(in_total)
+       
+       ## make into data_frame
+       kw_sum2 <- kw_sum %>%
+         select(cluster) %>%
+         bind_cols(in_total_perc, in_each_perc)
+         
+       
+       return(kw_sum2)
      })
    })
    
