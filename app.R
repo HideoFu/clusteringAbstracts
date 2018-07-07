@@ -349,14 +349,28 @@ server <- function(input, output) {
          select(cluster, size, kw_vec())
        
        
-       # mutate counts to fractions
+       # mutate counts to percentage
        size <- kw_sum$size
        total <- sum(size)
        
        in_each <- round(kw_sum[,kw_vec()] / size * 100, 1)
        in_total <- round(kw_sum[,"size"] / total * 100, 0)
        
-       ## into percentage
+       ## all KWs percentage
+       kws_in_each <- vector()
+       
+       for (i in 1:length(kw_sum$cluster)){
+         clust <- clust()
+         docs <- docs()
+         
+         id_cl <- clust[clust == i]  # named vector of doc_id in cluster i
+         kws_counts <- sum(unique(docs) %in% names(id_cl))
+         
+         kws_in_each[i] <- round(kws_counts / size[i] * 100, 0)
+       }
+       
+       
+       ## percentage into character
        in_perc <- function(df){
          as_data_frame(apply(apply(df, 2, as.character), 2, paste0, "%"))
        }
@@ -364,10 +378,13 @@ server <- function(input, output) {
        in_each_perc <- in_perc(in_each)
        in_total_perc <- in_perc(in_total)
        
+       kws_perc <- in_perc(data.frame(KWs = kws_in_each))
+       
+       
        ## make into data_frame
        kw_sum2 <- kw_sum %>%
          select(cluster) %>%
-         bind_cols(in_total_perc, in_each_perc)
+         bind_cols(in_total_perc, kws_perc, in_each_perc)
          
        
        return(kw_sum2)
