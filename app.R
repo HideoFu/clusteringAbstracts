@@ -110,20 +110,20 @@ server <- function(input, output) {
      ## clean special chars
      data <- raw_data()
      
-     # data$Abstract <- gsub("\\r*\\n*", "", data$Abstract)
-     # data$PubDate <- data$PubDate %>% 
-     #   str_replace_all("\\r\\n", "/") %>%
-     #   str_replace_all("^/|/$", "")
-     # data$AuthorList <- gsub("\\r\\n", ", ", data$AuthorList)
-     # data$KeywordList <- data$KeywordList %>%
-     #   str_replace_all("\\r\\n", ", ") %>%
-     #   str_replace("^, ", "")
-     # 
-     # 
-     # ## rename / sort columns
-     # data <- data %>%
-     #   mutate(doc_id = seq(1, nrow(data))) %>%
-     #   select(doc_id, Abstract)
+     data$Abstract <- gsub("\\r*\\n*", "", data$Abstract)
+     data$PubDate <- data$PubDate %>% 
+       str_replace_all("\\r\\n", "/") %>%
+       str_replace_all("^/|/$", "")
+     data$AuthorList <- gsub("\\r\\n", ", ", data$AuthorList)
+     data$KeywordList <- data$KeywordList %>%
+       str_replace_all("\\r\\n", ", ") %>%
+       str_replace("^, ", "")
+     
+     
+     ## rename / sort columns
+     data <- data %>%
+       mutate(doc_id = seq(1, nrow(data))) %>%
+       select(doc_id, Abstract)
      
      colnames(data)[1:2] <- c("doc_id","text")
      
